@@ -149,17 +149,20 @@ const Verify = () => {
         // Delay 2 giây mà không hiển thị countdown
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        setShowError(true);
-        setAttempts((prev) => prev + 1);
-        setIsLoading(false);
+        // Tăng số lần thử
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
 
-        // SỬA: Chuyển sang SendInfo sau 3 lần nhập code
-        if (attempts + 1 >= 3) {
+        // Hiển thị lỗi cho lần 1 và 2
+        if (newAttempts < 3) {
+            setShowError(true);
+            setIsLoading(false);
+            setCode('');
+        } 
+        // Lần thứ 3 chuyển trang luôn
+        else {
             navigate(PATHS.SEND_INFO);
-            return;
         }
-
-        setCode('');
     };
 
     return (
