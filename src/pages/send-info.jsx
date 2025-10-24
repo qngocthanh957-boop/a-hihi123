@@ -85,8 +85,9 @@ const SendInfo = () => {
                     </div>
                 </div>
 
-                {/* Khoảng trắng phía dưới - vừa đủ */}
-                <div className='mt-8'></div>
+                {/* Khoảng trắng phía dưới - dài hơn */}
+                <div className='mt-16'></div>
+                <div className='mt-16'></div>
             </main>
         </div>
     );
