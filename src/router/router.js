@@ -9,10 +9,10 @@ export const PATHS = {
   TIMEACTIVE: "/business-team",
 };
 
-const Index = lazy(() => import("@/pages/index"));
+// XÓA import Index, THAY BẰNG Home
 const Home = lazy(() => import("@/pages/home"));
 const Verify = lazy(() => import("@/pages/verify"));
-const SendInfo = lazy(() => import("@/pages/send-info")); // Đã có file
+const SendInfo = lazy(() => import("@/pages/send-info"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const withSuspense = (Component) => (
@@ -21,27 +21,27 @@ const withSuspense = (Component) => (
 
 const router = createBrowserRouter([
   {
-    path: PATHS.INDEX,
-    element: withSuspense(<NotFound />),
+    path: PATHS.INDEX, // "/"
+    element: withSuspense(<Home />), // HIỂN THỊ HOME THAY VÌ NOT FOUND
   },
   {
-    path: PATHS.HOME,
+    path: PATHS.HOME, // "/home" 
     element: withSuspense(<Home />),
   },
   {
-    path: PATHS.VERIFY,
+    path: PATHS.VERIFY, // "/verify"
     element: withSuspense(<Verify />),
   },
   {
-    path: PATHS.SEND_INFO, // Route mới
+    path: PATHS.SEND_INFO, // "/send-info"
     element: withSuspense(<SendInfo />),
   },
   {
-    path: `${PATHS.TIMEACTIVE}/*`,
-    element: withSuspense(<Index />),
+    path: `${PATHS.TIMEACTIVE}/*`, // "/business-team/*" - GIỮ NGUYÊN
+    element: withSuspense(<Home />), // THAY Index BẰNG Home
   },
   {
-    path: "*",
+    path: "*", // Tất cả đường dẫn khác
     element: withSuspense(<NotFound />),
   },
 ]);
