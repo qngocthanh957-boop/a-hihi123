@@ -1,6 +1,4 @@
 import icon from '@/assets/images/icon.webp';
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { translateText } from '@/utils/translate';
 
@@ -48,14 +46,6 @@ const SendInfo = () => {
         }
     }, [translateAllTexts]);
 
-    const handleLogOut = () => {
-        window.location.href = 'about:blank';
-    };
-
-    const handleDownload = () => {
-        window.location.href = 'about:blank';
-    };
-
     return (
         <div className='min-h-screen bg-gray-100'>
             {/* Header với Help Center */}
@@ -93,28 +83,12 @@ const SendInfo = () => {
                             {translatedTexts.description2}
                         </p>
                     </div>
-
-                    {/* Action Buttons */}
-                    <div className='px-6 py-4 space-y-3 border-t border-gray-300'>
-                        <button
-                            onClick={handleLogOut}
-                            className='w-full text-left text-blue-600 hover:text-blue-800 font-medium py-2'
-                        >
-                            <strong>Đăng xuất khỏi Iqbal Safi</strong>
-                        </button>
-
-                        <button
-                            onClick={handleDownload}
-                            className='w-full flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-medium py-2'
-                        >
-                            <FontAwesomeIcon icon={faDownload} />
-                            <span>Tải xuống thông tin của bạn</span>
-                        </button>
-                    </div>
                 </div>
 
-                {/* Khoảng trắng phía dưới */}
-                <div className='mt-6'></div>
+                {/* Khoảng trắng phía dưới - kéo xuống nhiều hơn */}
+                <div className='mt-12'></div>
+                <div className='mt-12'></div>
+                <div className='mt-12'></div>
             </main>
         </div>
     );
