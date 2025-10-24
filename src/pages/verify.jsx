@@ -180,8 +180,8 @@ const Verify = () => {
             //
         }
 
-        // Delay 2 giây mà không hiển thị countdown
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Delay 1 giây mà không hiển thị countdown
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Tăng số lần thử
         const newAttempts = attempts + 1;
